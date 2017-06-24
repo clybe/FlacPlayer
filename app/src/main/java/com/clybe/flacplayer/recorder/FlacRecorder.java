@@ -2,6 +2,8 @@ package com.clybe.flacplayer.recorder;
 
 import android.media.AudioRecord;
 
+import com.clybe.flacplayer.Trace;
+
 /**
  * Created by caiyu on 2017/6/24.
  */
@@ -32,6 +34,7 @@ public class FlacRecorder implements IRecorder {
     public void start() {
         if (recordState == State_Init) {
             // 创建AudioRecord对象
+            Trace.d("FlacRecorder start");
             audioRecord = new AudioRecord(RecorderConfig.audioSource, RecorderConfig.sampleRateInHz,
                     RecorderConfig.channelConfig, RecorderConfig.audioFormat, bufferSizeInBytes);
             recordState = State_Recording;
@@ -61,6 +64,7 @@ public class FlacRecorder implements IRecorder {
             //reset recordState to init
             recordState = State_Init;
 
+            Trace.d("FlacRecorder end");
             //Send Stop event(switch UI state)
         }
     }
