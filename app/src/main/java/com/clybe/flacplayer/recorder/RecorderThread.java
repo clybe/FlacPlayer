@@ -21,13 +21,11 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class RecorderThread extends Thread {
 
     private int bufferSizeInBytes;
-    public boolean isRecord = false;
     private IRecorder iRecorder;
 
     public RecorderThread(IRecorder iRecorder) {
         this.bufferSizeInBytes = iRecorder.getBufferSize();
         this.iRecorder = iRecorder;
-        isRecord = true;
     }
 
     @Override
@@ -42,7 +40,7 @@ public class RecorderThread extends Thread {
         processerThread.start();
 
         try {
-            while (isRecord == true) {
+            while (iRecorder.isRecording() == true) {
                 readSize = iRecorder.read(bufferData, bufferSizeInBytes);
                 if (AudioRecord.ERROR_INVALID_OPERATION != readSize) {
                     processorQueue.put(Arrays.copyOf(bufferData, bufferData.length));
@@ -67,9 +65,9 @@ public class RecorderThread extends Thread {
         FileOutputStream out = null;
         long totalAudioLen = 0;
         long totalDataLen = totalAudioLen + 36;
-        long longSampleRate = 44100;
+        long longSampleRate = RecorderConfig.sampleRateInHz;
         int channels = 2;
-        long byteRate = 16 * 44100 * channels / 8;
+        long byteRate = 16 * RecorderConfig.sampleRateInHz * channels / 8;
         byte[] data = new byte[bufferSizeInBytes];
         try {
             in = new FileInputStream(FileUtils.getFile(inFilename));

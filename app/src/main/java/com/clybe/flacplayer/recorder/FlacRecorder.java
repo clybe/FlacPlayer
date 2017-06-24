@@ -1,8 +1,6 @@
 package com.clybe.flacplayer.recorder;
 
-import android.media.AudioFormat;
 import android.media.AudioRecord;
-import android.media.MediaRecorder;
 
 /**
  * Created by caiyu on 2017/6/24.
@@ -10,11 +8,6 @@ import android.media.MediaRecorder;
 
 public class FlacRecorder implements IRecorder {
 
-    //AudioRecord params
-    private int audioSource = MediaRecorder.AudioSource.MIC;
-    private static int sampleRateInHz = 44100;
-    private static int channelConfig = AudioFormat.CHANNEL_IN_STEREO;
-    private static int audioFormat = AudioFormat.ENCODING_PCM_16BIT;
     private int bufferSizeInBytes;
 
     //Record state
@@ -27,12 +20,8 @@ public class FlacRecorder implements IRecorder {
     private RecorderThread recorderThread;
 
     public FlacRecorder() {
-        bufferSizeInBytes = AudioRecord.getMinBufferSize(sampleRateInHz,
-                channelConfig, audioFormat);
-        // 创建AudioRecord对象
-        audioRecord = new AudioRecord(audioSource, sampleRateInHz,
-                channelConfig, audioFormat, bufferSizeInBytes);
-
+        bufferSizeInBytes = AudioRecord.getMinBufferSize(RecorderConfig.sampleRateInHz,
+                RecorderConfig.channelConfig, RecorderConfig.audioFormat);
     }
 
     @Override
@@ -42,6 +31,9 @@ public class FlacRecorder implements IRecorder {
 
     public void start() {
         if (recordState == State_Init) {
+            // 创建AudioRecord对象
+            audioRecord = new AudioRecord(RecorderConfig.audioSource, RecorderConfig.sampleRateInHz,
+                    RecorderConfig.channelConfig, RecorderConfig.audioFormat, bufferSizeInBytes);
             recordState = State_Recording;
             audioRecord.startRecording();
             recorderThread = new RecorderThread(this);
@@ -60,19 +52,23 @@ public class FlacRecorder implements IRecorder {
         if (recordState == State_Recording) {
             recordState = State_Release;
             try {
-                recorderThread.isRecord = false;
                 recorderThread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            audioRecord.stop();
             audioRecord.release();
+
+            //reset recordState to init
+            recordState = State_Init;
+
+            //Send Stop event(switch UI state)
         }
     }
 
     @Override
-    public AudioRecord getAudioRecord() {
-        return audioRecord;
+    public boolean isRecording() {
+        return recordState == State_Recording;
     }
+
 
 }

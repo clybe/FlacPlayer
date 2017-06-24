@@ -1,7 +1,5 @@
 package com.clybe.flacplayer.recorder;
 
-import android.media.AudioRecord;
-
 /**
  * Created by caiyu on 2017/6/24.
  */
@@ -16,6 +14,5 @@ public interface IRecorder {
 
     void release();
 
-    AudioRecord getAudioRecord();
-
+    boolean isRecording();
 }

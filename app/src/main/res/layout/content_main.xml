@@ -7,31 +7,15 @@
     tools:context="com.clybe.flacplayer.MainActivity"
     tools:showIn="@layout/activity_main">
 
-
-    <TextView
-        android:id="@+id/text_state"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Record state"
-        android:textSize="18sp" />
-
     <Button
         android:id="@+id/btn_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Record" />
+        android:layout_marginTop="60dp"
+        android:text="Start Recording" />
 
     <Button
-        android:id="@+id/btn_stop_record"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="StopRecord" />
-
-
-    <Button
-        android:id="@+id/play_record"
+        android:id="@+id/btn_play_record"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"

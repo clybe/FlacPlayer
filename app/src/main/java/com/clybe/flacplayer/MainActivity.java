@@ -6,20 +6,19 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.widget.Button;
 
+import com.clybe.flacplayer.jni.LibFlac;
+import com.clybe.flacplayer.player.FlacPlayer;
 import com.clybe.flacplayer.recorder.FlacRecorder;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
-
-    // Used to load the 'native-lib' library on application startup.
-    static {
-        System.loadLibrary("flacwrapper");
-    }
 
     public static final String File_Raw_Name = "pcm.raw";
     public static final String File_Flac_Name = "out.wav";
 
     private FlacRecorder flacRecorder;
+    private FlacPlayer flacPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,26 +39,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         // Example of a call to a native method
 
         findViewById(R.id.btn_record).setOnClickListener(this);
-        findViewById(R.id.btn_stop_record).setOnClickListener(this);
+        findViewById(R.id.btn_play_record).setOnClickListener(this);
 
         flacRecorder = new FlacRecorder();
+        flacPlayer = new FlacPlayer();
+
+        Trace.e(LibFlac.stringFromJNI());
 
     }
-
-    /**
-     * A native method that is implemented by the 'native-lib' native library,
-     * which is packaged with this application.
-     */
-    public native String stringFromJNI();
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.btn_record:
-                flacRecorder.start();
+                if (flacRecorder.isRecording()) {
+                    ((Button) v).setText("Start Recording");
+                    flacRecorder.release();
+                } else {
+                    ((Button) v).setText("Stop Recording");
+                    flacRecorder.start();
+                }
                 break;
-            case R.id.btn_stop_record:
-                flacRecorder.release();
+            case R.id.btn_play_record:
+                LibFlac.decode();
+                flacPlayer.play();
                 break;
         }
     }
