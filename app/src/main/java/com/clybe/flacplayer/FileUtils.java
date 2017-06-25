@@ -19,4 +19,8 @@ public class FileUtils {
     public static File getFile(String fileName) {
         return new File(getRootDir(), fileName);
     }
+
+    public static String getPath(String fileName) {
+        return getFile(fileName).getAbsolutePath();
+    }
 }

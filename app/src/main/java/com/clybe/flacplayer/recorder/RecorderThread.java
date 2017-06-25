@@ -50,7 +50,7 @@ public class RecorderThread extends Thread {
             processorQueue.put("stop");
             processerThread.join();
 
-            copyWaveFile(MainActivity.File_Raw_Name, MainActivity.File_Flac_Name);
+            copyWaveFile(MainActivity.Record_Raw_FileName, MainActivity.Record_Wav_FileName);
 
         } catch (Throwable e) {
 

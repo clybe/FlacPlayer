@@ -28,7 +28,7 @@ public class ProcesserThread extends Thread {
         Object bufferObject;
         FileOutputStream fos = null;
         try {
-            File fileRaw = FileUtils.getFile(MainActivity.File_Raw_Name);
+            File fileRaw = FileUtils.getFile(MainActivity.Record_Raw_FileName);
             if (fileRaw.exists()) {
                 fileRaw.delete();
             }

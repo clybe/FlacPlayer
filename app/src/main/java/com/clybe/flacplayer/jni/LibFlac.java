@@ -9,9 +9,14 @@ public class LibFlac {
     static {
         System.loadLibrary("flacplayer");
     }
-    
+
     native public static String stringFromJNI();
 
-    native public static String decode();
+    /**
+     * @param inFilePath  flac input file
+     * @param outFilePath wav output file
+     * @return
+     */
+    native public static String decode(String inFilePath, String outFilePath);
 
 }

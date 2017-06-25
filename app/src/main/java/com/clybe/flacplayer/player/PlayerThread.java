@@ -4,8 +4,6 @@ import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
 
-import com.clybe.flacplayer.FileUtils;
-import com.clybe.flacplayer.MainActivity;
 import com.clybe.flacplayer.Trace;
 import com.clybe.flacplayer.recorder.RecorderConfig;
 
@@ -17,8 +15,17 @@ import java.io.FileInputStream;
 
 public class PlayerThread extends Thread {
 
+    public boolean isRunning = false;
+
+    private String filePath;
+
+    public PlayerThread(String filePath) {
+        this.filePath = filePath;
+    }
+
     @Override
     public void run() {
+        isRunning = true;
 
         try {
             int bufferSizeInBytes = AudioRecord.getMinBufferSize(RecorderConfig.sampleRateInHz,
@@ -33,11 +40,11 @@ public class PlayerThread extends Thread {
 
             audioTrack.play();
 
-            FileInputStream fis = new FileInputStream(FileUtils.getFile(MainActivity.File_Raw_Name));
+            FileInputStream fis = new FileInputStream(filePath);
             byte[] buffer = new byte[bufferSizeInBytes];
-            int readSize = 0;
+            int readSize;
 
-            while ((readSize = fis.read(buffer, 0, bufferSizeInBytes)) > 0) {
+            while (isRunning && (readSize = fis.read(buffer, 0, bufferSizeInBytes)) > 0) {
                 audioTrack.write(buffer, 0, readSize);
             }
 

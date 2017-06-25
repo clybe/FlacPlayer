@@ -1,25 +1,34 @@
 package com.clybe.flacplayer;
 
+import android.app.ProgressDialog;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
-import com.clybe.flacplayer.jni.LibFlac;
 import com.clybe.flacplayer.player.FlacPlayer;
+import com.clybe.flacplayer.processer.DecodingThread;
 import com.clybe.flacplayer.recorder.FlacRecorder;
+import com.nbsp.materialfilepicker.MaterialFilePicker;
+import com.nbsp.materialfilepicker.ui.FilePickerActivity;
+
+import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public static final String File_Raw_Name = "pcm.raw";
-    public static final String File_Flac_Name = "out.wav";
+    public static final String Record_Raw_FileName = "pcm.raw";
+    public static final String Record_Wav_FileName = "out.wav";
+
+    public static final String Flac_Decoded_FileName = "flac.wav";//flac文件decode出来的wav文件
 
     private FlacRecorder flacRecorder;
     private FlacPlayer flacPlayer;
+    private DecodingThread decodingThread;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,24 +39,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
-
         // Example of a call to a native method
 
         findViewById(R.id.btn_record).setOnClickListener(this);
         findViewById(R.id.btn_play_record).setOnClickListener(this);
+        findViewById(R.id.btn_decode_flac_file).setOnClickListener(this);
+        findViewById(R.id.btn_play_flac_decoded_file).setOnClickListener(this);
 
         flacRecorder = new FlacRecorder();
         flacPlayer = new FlacPlayer();
-
-        Trace.e(LibFlac.stringFromJNI());
 
     }
 
@@ -64,9 +64,76 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 }
                 break;
             case R.id.btn_play_record:
-                LibFlac.decode();
-                flacPlayer.play();
+                flacPlayer.play(FileUtils.getPath(Record_Wav_FileName));
+                break;
+            case R.id.btn_decode_flac_file:
+                new MaterialFilePicker()
+                        .withActivity(this)
+                        .withRequestCode(1)
+                        .withFilter(Pattern.compile(".*\\.flac$")) // Filtering files and directories by file name using regexp
+                        .withFilterDirectories(true) // Set directories filterable (false by default)
+                        .withHiddenFiles(true) // Show hidden files and folders
+                        .start();
+                break;
+            case R.id.btn_play_flac_decoded_file:
+                flacPlayer.play(FileUtils.getPath(Flac_Decoded_FileName));
                 break;
         }
     }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+            Trace.d("filePath is " + filePath + ", begin decoding");
+
+            if (decodingThread != null && decodingThread.isAlive()) {
+                decodingThread.interrupt();
+            }
+
+            final ProgressDialog dialog = ProgressDialog.show(MainActivity.this, "",
+                    "Processing...", true);
+            dialog.setCancelable(true);
+            dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                @Override
+                public void onCancel(DialogInterface dialog) {
+                    Toast.makeText(MainActivity.this, "decoding canceled", Toast.LENGTH_SHORT).show();
+
+                }
+            });
+            dialog.show();
+
+            decodingThread = new DecodingThread(
+                    filePath,
+                    FileUtils.getPath(Flac_Decoded_FileName),
+                    new DecodingThread.DecodeCallback() {
+                        @Override
+                        public void onSuccess() {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dialog.cancel();
+                                    Toast.makeText(MainActivity.this, "decoding success", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onFailed(Exception e) {
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    dialog.cancel();
+                                    Toast.makeText(MainActivity.this, "decoding fail", Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    });
+            decodingThread.start();
+        }
+
+    }
+
 }
