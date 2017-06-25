@@ -1,5 +1,6 @@
 package com.clybe.flacplayer.processer;
 
+import com.clybe.flacplayer.FileUtils;
 import com.clybe.flacplayer.Trace;
 import com.clybe.flacplayer.jni.LibFlac;
 
@@ -38,6 +39,20 @@ public class DecodingThread extends Thread {
                 file.delete();
             }
             decodeCallback.onFailed(e);
+        }
+
+    }
+
+    public void forceStop() {
+        try {
+
+            File file = FileUtils.getFile(outFilePath);
+            if (file.exists()) {
+                file.delete();
+            }
+            stop();
+        } catch (Exception e) {
+            Trace.e("forceStop exception " + e.getMessage());
         }
 
     }

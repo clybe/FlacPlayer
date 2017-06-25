@@ -1,7 +1,6 @@
 package com.clybe.flacplayer;
 
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.os.Bundle;
@@ -89,20 +88,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
             Trace.d("filePath is " + filePath + ", begin decoding");
 
-            if (decodingThread != null && decodingThread.isAlive()) {
-                decodingThread.interrupt();
+            if (decodingThread != null) {
+                decodingThread.forceStop();//force stop decoding
             }
 
             final ProgressDialog dialog = ProgressDialog.show(MainActivity.this, "",
                     "Processing...", true);
-            dialog.setCancelable(true);
-            dialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                @Override
-                public void onCancel(DialogInterface dialog) {
-                    Toast.makeText(MainActivity.this, "decoding canceled", Toast.LENGTH_SHORT).show();
-
-                }
-            });
+            dialog.setCancelable(false);
             dialog.show();
 
             decodingThread = new DecodingThread(
@@ -111,10 +103,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     new DecodingThread.DecodeCallback() {
                         @Override
                         public void onSuccess() {
+                            decodingThread = null;
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    dialog.cancel();
+                                    dialog.dismiss();
                                     Toast.makeText(MainActivity.this, "decoding success", Toast.LENGTH_SHORT).show();
                                 }
                             });
@@ -122,10 +115,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                         @Override
                         public void onFailed(Exception e) {
+                            decodingThread = null;
                             runOnUiThread(new Runnable() {
                                 @Override
                                 public void run() {
-                                    dialog.cancel();
+                                    dialog.dismiss();
                                     Toast.makeText(MainActivity.this, "decoding fail", Toast.LENGTH_SHORT).show();
                                 }
                             });
